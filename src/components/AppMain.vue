@@ -1,22 +1,58 @@
 <script>
 import axios from "axios";
+import ProjectCard from "./ProjectCard.vue";
 
 export default{
     name :"AppMain",
+    components:{
+        ProjectCard
+    },
     data() {
         return{
             apiUrl:"http://localhost:8000/api/",
             projects : [],
+            loading : false,
+            loadingError: false,
+            postsCurrentPage: 0,
+            postsTotalPages: 0,
         }
     },
     methods:{
-
-    },
-    mounted(){
-        axios.get(this.apiUrl + "projects").then(response=>{
+        getPostsWPage(pageNumber){
+            this.loading = true
+            let config = {
+                    params: {
+                        page: (pageNumber)
+                    }
+                };
+                axios.get(this.apiUrl + "projects", config).then(response=>{
             console.log(response.data);
-            this.projects = response.data.results
-        })
+            this.projects = response.data.results.data
+            this.postsCurrentPage = response.data.results.current_page;
+            this.postsTotalPages = response.data.results.last_page;
+            this.loading = false
+        }).catch(err => {
+                this.loading = false;
+                this.loadingError = err.message;
+            });
+        },
+        
+    },
+
+    mounted(){
+        // this.loading = true
+
+        // axios.get(this.apiUrl + "projects").then(response=>{
+        //     console.log(response.data);
+        //     this.projects = response.data.results.data
+        //     this.postsCurrentPage = response.data.results.current_page;
+        //     this.postsTotalPages = response.data.results.last_page;
+        //     this.loading = false
+        // }).catch(err => {
+        //         this.loading = false;
+        //         this.loadingError = err.message;
+        //     });
+        this.getPostsWPage(1)
     }
 
 }
@@ -26,38 +62,23 @@ export default{
 </script>
 
 <template>
- <h1>ciauz</h1>
+    <h1 v-if="loading"> LOADING DATA</h1>
 
-    <div class="card" v-for="project in projects">
-            <h3>{{ project.title }}</h3>
-            <h4>descrizione: {{ project.description }}</h4>
-            <h4>technologies: 
-                <span v-for="technology in project.technologies">{{ technology.name }}&nbsp;</span>
-                
-            </h4>
-            
-            <h4 v-if="project.link_to_project"> link: <a :href="project.link_to_project"> {{ project.link_to_project }} </a></h4>
+<div v-if="!loading">
+    <ProjectCard :project="project" v-for="project in projects" />
+</div>
+<a class="button" @click="this.postsCurrentPage > 1 && getPostsWPage( this.postsCurrentPage - 1)">Pagina precedente</a>
+        <a class="button" @click="this.postsCurrentPage &&  getPostsWPage(pageNumber)" v-for="pageNumber in postsTotalPages">{{ pageNumber }}</a>
+        <a class="button" @click="this.postsCurrentPage < this.postsTotalPages && getPostsWPage(this.postsCurrentPage + 1)">Pagina successiva</a>
 
-        </div>
-
-    <!-- <main>
-        <h2>projects <span v-if="projectsTotalPages>0">{{ projectsCurrentPage }} di {{ projectsTotalPages }}</span></h2>
-        <h3 v-if="loading">Caricamento in corso</h3>
-        <h3 v-if="loadingError">{{ loadingError }}</h3>
-
-        <div class="card" v-for="project in projects">
-            <h3>{{ project.title }}</h3>
-            <h4>Categoria: {{ project.category ? project.category.name : "Nessuna" }}</h4>
-            <h4>Tags: 
-                <span v-if="project.tags.length" v-for="tag in project.tags">{{ tag.name }}&nbsp;</span>
-                <span v-else>Nessun tag</span>
-            </h4>
-            <p>{{ project.content }}</p>
-        </div>
-
-        <a class="button" @click="getprojectsPrevPage">Pagina precedente</a>
-        <a class="button" @click="getprojectsPage(pageNumber)" v-for="pageNumber in projectsTotalPages">{{ pageNumber }}</a>
-        <a class="button" @click="getprojectsNextPage">Pagina successiva</a>
-    </main> -->
-
+<h1>prova</h1>
 </template>
+
+<style scoped>
+h1{
+    color: red;
+}
+.button{
+    margin-right: 2rem;
+}
+</style>
