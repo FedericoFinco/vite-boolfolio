@@ -1,7 +1,7 @@
 import { createRouter,createWebHistory } from "vue-router";
 
-import AppHome from './pages/AppHome';
-import About from './pages/About';
+import AppHome from './pages/AppHome.vue';
+import About from './pages/About.vue';
 
 
 const router = createRouter({
